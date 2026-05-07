@@ -1,13 +1,17 @@
 package bookstoread;
 
+import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.time.Month;
 
 public class BookShelfSpec {
 
@@ -21,9 +25,9 @@ public class BookShelfSpec {
     void init() {
         shelf = new BookShelf();
 
-        effectiveJava = new Book("Effective Java", "Bloch", LocalDate.now());
-        codeComplete = new Book("Code Complete", "McConnell", LocalDate.now());
-        mythicalManMonth = new Book("The Mythical Man-Month", "Brooks", LocalDate.now());
+        effectiveJava = new Book("Effective Java", "Bloch", LocalDate.of(2008, Month.MAY, 8));
+        codeComplete = new Book("Code Complete", "McConnell", LocalDate.of(2004, Month.JUNE, 9));
+        mythicalManMonth = new Book("The Mythical Man-Month", "Brooks", LocalDate.of(1975, Month.JANUARY, 1));
     }
 
     @Test
@@ -60,7 +64,7 @@ public class BookShelfSpec {
         List<Book> books = shelf.arrange();
 
         assertEquals(
-                Arrays.asList(codeComplete, effectiveJava, mythicalManMonth),
+                asList(codeComplete, effectiveJava, mythicalManMonth),
                 books
         );
     }
@@ -72,8 +76,24 @@ public class BookShelfSpec {
         shelf.arrange(); // ne doit PAS modifier
 
         assertEquals(
-                Arrays.asList(effectiveJava, codeComplete, mythicalManMonth),
+                asList(effectiveJava, codeComplete, mythicalManMonth),
                 shelf.books()
         );
     }
+
+    @Test
+    void bookshelfArrangedByUserProvidedCriteria() {
+        shelf.add(effectiveJava, codeComplete, mythicalManMonth);
+        List<Book> books = shelf.arrange(Comparator.<Book>naturalOrder().reversed());
+        assertEquals(asList(mythicalManMonth, effectiveJava, codeComplete), books, () -> "Books in a bookshelf are arranged in descending order of book title");
+    }
+
+    @Test
+    @DisplayName("La bibliothèque est organisée par date de publication")
+    void bookshelfArrangedByPublishedDate() {
+        shelf.add(effectiveJava, codeComplete, mythicalManMonth);
+        List<Book> books = shelf.arrange(Comparator.comparing(Book::getPublishedOn));
+        assertEquals(asList(mythicalManMonth, codeComplete, effectiveJava), books);
+    }
+
 }
